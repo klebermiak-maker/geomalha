@@ -5,6 +5,7 @@ import { InteractiveGrid } from './components/InteractiveGrid';
 import { DrawingToolbar } from './components/DrawingToolbar';
 import { MeasurementDisplay } from './components/MeasurementDisplay';
 import { MissionsPanel } from './components/MissionsPanel';
+import { LightningChallenge } from './components/LightningChallenge';
 import { DetectiveQuiz } from './components/DetectiveQuiz';
 import { ShapeComparator } from './components/ShapeComparator';
 import { DidacticHelperModal } from './components/DidacticHelperModal';
@@ -103,12 +104,32 @@ export default function App() {
   // Combined measurements depending on mode
   const currentMeasurements = useMemo(() => {
     if (mode === 'vertices' && isPolygonClosed) {
+      const isTriangle = vertices.length === 3;
       return {
         area: polygonMeasurements.area,
         perimeter: polygonMeasurements.perimeter,
         cellCount: Math.round(polygonMeasurements.area),
         edgeSegments: [],
         isSimpleRectangle: false,
+        smartHint: {
+          shapeLabel: isTriangle
+            ? 'Triângulo no Geoplano (3 vértices)'
+            : `Polígono Fechado (${vertices.length} vértices/lados)`,
+          formulaAreaName: isTriangle ? 'Área do Triângulo' : 'Área do Polígono na Malha',
+          formulaAreaFormula: isTriangle ? '(Base × Altura) ÷ 2' : 'Fórmula de Pick / Agrimensor',
+          formulaAreaCalc: `${polygonMeasurements.area} u²`,
+          formulaPerimeterName: 'Perímetro do Polígono',
+          formulaPerimeterFormula: 'Soma do comprimento de todos os lados',
+          formulaPerimeterCalc: `${polygonMeasurements.perimeter} u`,
+          pedagogicalTip: isTriangle
+            ? 'A área de um triângulo na malha é sempre a metade do retângulo que o envolve! Por isso dividimos por 2.'
+            : `Em polígonos fechados na malha com ${vertices.length} lados, somamos as distâncias de cada lado para achar o perímetro.`,
+          arithmeticSteps: [
+            `Número de lados do polígono: ${vertices.length}`,
+            `Superfície interior coberta: ${polygonMeasurements.area} quadradinhos (u²)`,
+            `Contorno total (soma dos lados): ${polygonMeasurements.perimeter} unidades (u)`
+          ]
+        },
         explanation: {
           areaText: `Área do Polígono = ${polygonMeasurements.area} u²`,
           perimeterText: `Perímetro do Polígono = ${polygonMeasurements.perimeter} u`,
@@ -262,7 +283,7 @@ export default function App() {
         <div className="flex md:hidden items-center justify-between gap-1 p-1 bg-slate-200/80 rounded-xl overflow-x-auto">
           <button
             onClick={() => setActiveTab('free')}
-            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all whitespace-nowrap ${
               activeTab === 'free' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
             }`}
           >
@@ -270,15 +291,23 @@ export default function App() {
           </button>
           <button
             onClick={() => setActiveTab('missions')}
-            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all whitespace-nowrap ${
               activeTab === 'missions' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
             }`}
           >
             Missões ({completedMissions.length})
           </button>
           <button
+            onClick={() => setActiveTab('speed')}
+            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all whitespace-nowrap ${
+              activeTab === 'speed' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+            }`}
+          >
+            ⚡ Relâmpago
+          </button>
+          <button
             onClick={() => setActiveTab('quiz')}
-            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all whitespace-nowrap ${
               activeTab === 'quiz' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
             }`}
           >
@@ -286,7 +315,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setActiveTab('compare')}
-            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all ${
+            className={`flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all whitespace-nowrap ${
               activeTab === 'compare' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
             }`}
           >
@@ -429,6 +458,13 @@ export default function App() {
             />
 
             {/* Contextual Deck based on Active Tab */}
+            {activeTab === 'speed' && (
+              <LightningChallenge
+                measurements={currentMeasurements}
+                onResetGrid={handleClear}
+              />
+            )}
+
             {activeTab === 'missions' && (
               <MissionsPanel
                 currentMissionIndex={currentMissionIndex}

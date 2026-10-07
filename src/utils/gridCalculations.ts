@@ -1,4 +1,4 @@
-import { Point, EdgeSegment, MeasurementResult } from '../types/geometry';
+import { Point, EdgeSegment, MeasurementResult, SmartHintInfo } from '../types/geometry';
 
 /**
  * Calculates area, perimeter, and educational explanations for painted grid cells
@@ -105,19 +105,65 @@ export function calculateCellMeasurements(cells: Point[]): MeasurementResult {
   let areaText = '';
   let perimeterText = '';
   let details = '';
+  let smartHint: SmartHintInfo;
 
   if (isSquare) {
     areaText = `Área = ${width} × ${width} = ${area} quadradinhos (u²)`;
     perimeterText = `Perímetro = 4 × ${width} = ${perimeter} unidades (u)`;
     details = `Parabéns! É um Quadrado perfeito de lado ${width}. Todos os 4 lados são iguais!`;
+    smartHint = {
+      shapeLabel: `Quadrado Perfeito (${width} × ${width})`,
+      formulaAreaName: 'Área do Quadrado',
+      formulaAreaFormula: 'Lado × Lado  (L²)',
+      formulaAreaCalc: `${width} × ${width} = ${area} u²`,
+      formulaPerimeterName: 'Perímetro do Quadrado',
+      formulaPerimeterFormula: '4 × Lado',
+      formulaPerimeterCalc: `4 × ${width} = ${perimeter} u`,
+      pedagogicalTip: `No quadrado, os 4 lados são idênticos (${width} unidades cada). Para cercar, some os 4 lados (${width} + ${width} + ${width} + ${width} = ${perimeter} u). Para cobrir o chão com azulejos, multiplique lado × lado (${width} × ${width} = ${area} u²).`,
+      arithmeticSteps: [
+        `Medida de cada lado: ${width} unidades`,
+        `Cálculo da Área: ${width} (base) × ${width} (altura) = ${area} quadradinhos`,
+        `Cálculo do Perímetro: 4 × ${width} = ${perimeter} unidades de contorno`
+      ]
+    };
   } else if (isSolidRectangle) {
     areaText = `Área = ${width} (base) × ${height} (altura) = ${area} quadradinhos (u²)`;
     perimeterText = `Perímetro = 2 × (${width} + ${height}) = ${perimeter} unidades (u)`;
     details = `É um Retângulo com ${width} colunas e ${height} linhas. Você pode multiplicar base × altura!`;
+    smartHint = {
+      shapeLabel: `Retângulo Regular (${width} colunas × ${height} linhas)`,
+      formulaAreaName: 'Área do Retângulo',
+      formulaAreaFormula: 'Base × Altura',
+      formulaAreaCalc: `${width} × ${height} = ${area} u²`,
+      formulaPerimeterName: 'Perímetro do Retângulo',
+      formulaPerimeterFormula: '2 × (Base + Altura)  ou  Base + Altura + Base + Altura',
+      formulaPerimeterCalc: `2 × (${width} + ${height}) = 2 × ${width + height} = ${perimeter} u`,
+      pedagogicalTip: `Pense em fileiras organizadas: temos ${height} linhas horizontais com ${width} quadradinhos em cada uma. Em vez de contar um por um, a tabuada ${width} × ${height} dá o total instantâneo!`,
+      arithmeticSteps: [
+        `Base (comprimento) = ${width} u | Altura (largura) = ${height} u`,
+        `Cálculo da Área: ${width} × ${height} = ${area} quadradinhos (u²)`,
+        `Cálculo do Perímetro: ${width} (cima) + ${height} (direita) + ${width} (baixo) + ${height} (esquerda) = ${perimeter} u`
+      ]
+    };
   } else {
     areaText = `Área = Contando todos os ${area} quadradinhos preenchidos = ${area} u²`;
     perimeterText = `Perímetro = Contando os ${perimeter} tracinhos do contorno externo = ${perimeter} u`;
     details = `É uma figura com formato especial! Para achar a área, contamos cada quadradinho. Para o perímetro, contamos os tracinhos da borda.`;
+    smartHint = {
+      shapeLabel: `Figura Poligonal Composta (${area} quadradinhos)`,
+      formulaAreaName: 'Área por Decomposição ou Contagem',
+      formulaAreaFormula: 'Soma de todos os quadradinhos (1 u² cada)',
+      formulaAreaCalc: `Total = ${area} quadradinhos preenchidos (u²)`,
+      formulaPerimeterName: 'Perímetro por Contorno de Bordas',
+      formulaPerimeterFormula: 'Soma dos segmentos externos da cerca',
+      formulaPerimeterCalc: `Total = ${perimeter} unidades de cerca (u)`,
+      pedagogicalTip: `Como a figura tem degraus ou reentrâncias, para achar a área você pode dividir a forma em retângulos menores (decomposição) ou contar quadradinho por quadradinho. Para o contorno, basta seguir a fita métrica pelas bordas expostas!`,
+      arithmeticSteps: [
+        `Total de quadradinhos internos cobertos = ${area} u²`,
+        `Total de tracinhos da borda externa exposta = ${perimeter} u`,
+        `Dica: figuras com mesma área (${area} u²) podem ter perímetros bem diferentes!`
+      ]
+    };
   }
 
   return {
@@ -134,6 +180,7 @@ export function calculateCellMeasurements(cells: Point[]): MeasurementResult {
       height
     },
     isSimpleRectangle: isSolidRectangle,
+    smartHint,
     explanation: {
       areaText,
       perimeterText,

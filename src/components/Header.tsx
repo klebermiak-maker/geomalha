@@ -1,8 +1,9 @@
 import React from 'react';
-import { Volume2, VolumeX, HelpCircle, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, HelpCircle, Sparkles, Zap } from 'lucide-react';
 import { soundManager } from '../utils/audio';
+import { AppTab } from '../types/geometry';
 
-export type AppTab = 'free' | 'missions' | 'quiz' | 'compare';
+export type { AppTab };
 
 interface HeaderProps {
   activeTab: AppTab;
@@ -64,6 +65,18 @@ export const Header: React.FC<HeaderProps> = ({
               {completedMissionsCount}★
             </span>
           )}
+        </button>
+        <button
+          onClick={() => {
+            soundManager.playClick();
+            onTabChange('speed');
+          }}
+          className={`hover:text-slate-900 transition-colors flex items-center gap-1 ${
+            activeTab === 'speed' ? 'text-amber-600 font-bold border-b-2 border-amber-600 pb-0.5' : ''
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-200" />
+          <span>Desafio Relâmpago</span>
         </button>
         <button
           onClick={() => {

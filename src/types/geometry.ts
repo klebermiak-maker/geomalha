@@ -30,6 +30,18 @@ export interface EdgeSegment {
   index: number;
 }
 
+export interface SmartHintInfo {
+  shapeLabel: string;
+  formulaAreaName: string;
+  formulaAreaFormula: string;
+  formulaAreaCalc: string;
+  formulaPerimeterName: string;
+  formulaPerimeterFormula: string;
+  formulaPerimeterCalc: string;
+  pedagogicalTip: string;
+  arithmeticSteps: string[];
+}
+
 export interface MeasurementResult {
   area: number;
   perimeter: number;
@@ -44,6 +56,7 @@ export interface MeasurementResult {
     height: number;
   };
   isSimpleRectangle: boolean;
+  smartHint?: SmartHintInfo;
   explanation: {
     areaText: string;
     perimeterText: string;
@@ -84,4 +97,18 @@ export interface SavedShape {
   cells: Point[];
   area: number;
   perimeter: number;
+}
+
+export type AppTab = 'free' | 'missions' | 'speed' | 'quiz' | 'compare';
+
+export interface LightningRound {
+  id: number;
+  title: string;
+  instruction: string;
+  targetArea?: number;
+  targetPerimeter?: number;
+  shapeRequirement?: 'any' | 'rectangle' | 'square' | 'l_shape';
+  timeLimit: number; // in seconds
+  hint: string;
+  pointsReward: number;
 }

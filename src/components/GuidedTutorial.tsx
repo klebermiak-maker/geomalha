@@ -79,8 +79,8 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 'nav',
     targetSelector: '[data-tutorial="nav-tabs"]',
-    title: 'Missões, Quiz e Comparações',
-    description: 'Jogue na "Trilha de Missões" para vencer 10 fases com estrelas, vire um detetive no "Quiz", ou explore as "Comparações" para ver mesma área com perímetros diferentes!',
+    title: 'Missões, Desafio Relâmpago e Quiz',
+    description: 'Enfrente as 10 fases da "Trilha de Missões", corra contra o tempo no "Desafio Relâmpago ⚡", vire um detetive de medidas no "Quiz", ou explore as "Comparações"!',
     tip: 'Você está 100% pronto para ser um mestre da geometria!',
     icon: '🏆',
     placement: 'bottom'
