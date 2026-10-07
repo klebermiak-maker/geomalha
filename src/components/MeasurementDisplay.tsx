@@ -31,7 +31,7 @@ export const MeasurementDisplay: React.FC<MeasurementDisplayProps> = ({
   return (
     <div className="flex flex-col gap-3">
       {/* Cards de Medidas Instantâneas */}
-      <div className="grid grid-cols-2 gap-3">
+      <div data-tutorial="measurements-cards" className="grid grid-cols-2 gap-3">
         {/* Card: Área */}
         <div
           className={`relative p-3.5 rounded-xl border transition-all ${
@@ -130,7 +130,7 @@ export const MeasurementDisplay: React.FC<MeasurementDisplayProps> = ({
       </div>
 
       {/* Box Didático de Explicação Matemática */}
-      <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
+      <div data-tutorial="measurement-helpers" className="bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
           <div className="flex items-center gap-1.5">
             <span className="text-base">💡</span>

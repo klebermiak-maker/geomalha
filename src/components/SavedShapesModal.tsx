@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SavedShape, Point } from '../types/geometry';
+import { SavedShape, Point, GridTheme } from '../types/geometry';
 import { Bookmark, Trash2, FolderOpen, Plus, X, Download, Share2 } from 'lucide-react';
 import { soundManager } from '../utils/audio';
 import { exportPolygonAsPNG } from '../utils/exportImage';
@@ -15,6 +15,7 @@ interface SavedShapesModalProps {
   currentPerimeter: number;
   currentCells: Point[];
   currentColor: string;
+  theme?: GridTheme;
 }
 
 export const SavedShapesModal: React.FC<SavedShapesModalProps> = ({
@@ -27,7 +28,8 @@ export const SavedShapesModal: React.FC<SavedShapesModalProps> = ({
   currentArea,
   currentPerimeter,
   currentCells,
-  currentColor
+  currentColor,
+  theme = 'paper'
 }) => {
   const [newShapeName, setNewShapeName] = useState('');
   const [exportNotice, setExportNotice] = useState<string | null>(null);
@@ -58,7 +60,8 @@ export const SavedShapesModal: React.FC<SavedShapesModalProps> = ({
     const success = exportPolygonAsPNG({
       shapeName: newShapeName.trim() || 'Meu Polígono da Malha',
       cells: currentCells,
-      colorHex: fillHex
+      colorHex: fillHex,
+      theme
     });
 
     if (success) {
@@ -71,7 +74,8 @@ export const SavedShapesModal: React.FC<SavedShapesModalProps> = ({
   const handleExportSaved = (shape: SavedShape) => {
     const success = exportPolygonAsPNG({
       shapeName: shape.name,
-      cells: shape.cells
+      cells: shape.cells,
+      theme
     });
     if (success) {
       soundManager.playSuccess();

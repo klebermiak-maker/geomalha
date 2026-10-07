@@ -5,6 +5,8 @@ export interface Point {
 
 export type GridMode = 'cells' | 'vertices';
 
+export type GridTheme = 'paper' | 'chalkboard';
+
 export type ActiveTool = 'draw' | 'erase' | 'stamp';
 
 export type StampShape = 'rectangle' | 'square' | 'l_shape' | 't_shape' | 'cross' | 'triangle';

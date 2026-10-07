@@ -64,7 +64,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
       {/* Segmented Mode Selector */}
-      <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+      <div data-tutorial="drawing-modes" className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
         <button
           onClick={() => {
             soundManager.playClick();
@@ -97,7 +97,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
 
       {/* Tools for Mode: Cells */}
       {mode === 'cells' && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div data-tutorial="drawing-tools" className="flex items-center gap-2 flex-wrap">
           {/* Tool actions */}
           <div className="flex items-center gap-1 border-r border-slate-200 pr-2">
             <button

@@ -1,4 +1,4 @@
-import { Point } from '../types/geometry';
+import { Point, GridTheme } from '../types/geometry';
 import { calculateCellMeasurements } from './gridCalculations';
 
 export interface ExportImageOptions {
@@ -8,6 +8,7 @@ export interface ExportImageOptions {
   rows?: number;
   colorHex?: string;
   borderColorHex?: string;
+  theme?: GridTheme;
 }
 
 /**
@@ -19,12 +20,14 @@ export function exportPolygonAsPNG({
   cols = 14,
   rows = 12,
   colorHex = '#38bdf8',
-  borderColorHex = '#0284c7'
+  borderColorHex = '#0284c7',
+  theme = 'paper'
 }: ExportImageOptions): boolean {
   if (cells.length === 0) {
     return false;
   }
 
+  const isChalk = theme === 'chalkboard';
   const measurements = calculateCellMeasurements(cells);
 
   // Setup offscreen canvas
@@ -41,25 +44,25 @@ export function exportPolygonAsPNG({
   ctx.scale(scale, scale);
 
   // 1. Background
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = isChalk ? '#112a1d' : '#ffffff';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   // Outer border with subtle card style
-  ctx.strokeStyle = '#cbd5e1';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = isChalk ? '#244b37' : '#cbd5e1';
+  ctx.lineWidth = isChalk ? 4 : 2;
   ctx.strokeRect(16, 16, canvasWidth - 32, canvasHeight - 32);
 
   // 2. Header
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = isChalk ? '#f0fdf4' : '#0f172a';
   ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('📐 GeoMalha 4º Ano · Registro de Geometria', 36, 52);
 
-  ctx.fillStyle = '#64748b';
+  ctx.fillStyle = isChalk ? '#86efac' : '#64748b';
   ctx.font = '13px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('Atividade Escolar: Medição de Área e Perímetro na Malha Quadriculada (BNCC)', 36, 74);
 
   // Divider line
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = isChalk ? '#244b37' : '#e2e8f0';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(36, 88);
@@ -67,7 +70,7 @@ export function exportPolygonAsPNG({
   ctx.stroke();
 
   // Shape Name
-  ctx.fillStyle = '#1e293b';
+  ctx.fillStyle = isChalk ? '#ffffff' : '#1e293b';
   ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
   ctx.fillText(`Figura: ${shapeName}`, 36, 115);
 
@@ -79,7 +82,7 @@ export function exportPolygonAsPNG({
   const gridY = 145;
 
   // Grid rulers (column numbers on top)
-  ctx.fillStyle = '#94a3b8';
+  ctx.fillStyle = isChalk ? '#a7f3d0' : '#94a3b8';
   ctx.font = 'bold 11px "JetBrains Mono", monospace';
   ctx.textAlign = 'center';
   for (let c = 0; c < cols; c++) {
@@ -93,10 +96,10 @@ export function exportPolygonAsPNG({
   }
 
   // Draw grid background & cells
-  ctx.fillStyle = '#f8fafc';
+  ctx.fillStyle = isChalk ? '#0d2217' : '#f8fafc';
   ctx.fillRect(gridX, gridY, gridWidth, gridHeight);
 
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = isChalk ? '#244b37' : '#e2e8f0';
   ctx.lineWidth = 1;
   for (let c = 0; c <= cols; c++) {
     ctx.beginPath();
@@ -119,7 +122,7 @@ export function exportPolygonAsPNG({
     ctx.fillStyle = colorHex;
     ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
 
-    ctx.strokeStyle = borderColorHex;
+    ctx.strokeStyle = isChalk ? '#ffffff' : borderColorHex;
     ctx.lineWidth = 1.5;
     ctx.strokeRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
 
@@ -130,8 +133,8 @@ export function exportPolygonAsPNG({
     ctx.fillText(`${idx + 1}`, px + cellSize / 2, py + cellSize / 2 + 4);
   });
 
-  // Draw exposed perimeter edges (orange border)
-  ctx.strokeStyle = '#ea580c';
+  // Draw exposed perimeter edges (orange or yellow chalk border)
+  ctx.strokeStyle = isChalk ? '#facc15' : '#ea580c';
   ctx.lineWidth = 3.5;
   ctx.lineCap = 'round';
   measurements.edgeSegments.forEach((edge) => {
@@ -151,59 +154,59 @@ export function exportPolygonAsPNG({
   const cardWidth = (canvasWidth - 72 - 16) / 2;
   const cardHeight = 84;
 
-  // Area Card (Blue)
-  ctx.fillStyle = '#f0f9ff';
-  ctx.strokeStyle = '#7dd3fc';
+  // Area Card
+  ctx.fillStyle = isChalk ? '#0e261a' : '#f0f9ff';
+  ctx.strokeStyle = isChalk ? '#38bdf8' : '#7dd3fc';
   ctx.lineWidth = 1.5;
   roundRect(ctx, 36, cardY, cardWidth, cardHeight, 10);
   ctx.fill();
   ctx.stroke();
 
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#0369a1';
+  ctx.fillStyle = isChalk ? '#38bdf8' : '#0369a1';
   ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('🟦 ÁREA (Superfície)', 48, cardY + 22);
 
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = isChalk ? '#ffffff' : '#0f172a';
   ctx.font = 'bold 24px "JetBrains Mono", monospace';
   ctx.fillText(`${measurements.area}`, 48, cardY + 54);
 
-  ctx.fillStyle = '#64748b';
+  ctx.fillStyle = isChalk ? '#a7f3d0' : '#64748b';
   ctx.font = '12px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('quadradinhos (u²)', 100, cardY + 52);
 
-  ctx.fillStyle = '#475569';
+  ctx.fillStyle = isChalk ? '#94a3b8' : '#475569';
   ctx.font = '11px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('Espaço que a figura ocupa por dentro', 48, cardY + 72);
 
-  // Perimeter Card (Orange)
+  // Perimeter Card
   const pCardX = 36 + cardWidth + 16;
-  ctx.fillStyle = '#fff7ed';
-  ctx.strokeStyle = '#fdba74';
+  ctx.fillStyle = isChalk ? '#0e261a' : '#fff7ed';
+  ctx.strokeStyle = isChalk ? '#facc15' : '#fdba74';
   ctx.lineWidth = 1.5;
   roundRect(ctx, pCardX, cardY, cardWidth, cardHeight, 10);
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = '#c2410c';
+  ctx.fillStyle = isChalk ? '#facc15' : '#c2410c';
   ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('📏 PERÍMETRO (Contorno)', pCardX + 12, cardY + 22);
 
-  ctx.fillStyle = '#0f172a';
+  ctx.fillStyle = isChalk ? '#ffffff' : '#0f172a';
   ctx.font = 'bold 24px "JetBrains Mono", monospace';
   ctx.fillText(`${measurements.perimeter}`, pCardX + 12, cardY + 54);
 
-  ctx.fillStyle = '#64748b';
+  ctx.fillStyle = isChalk ? '#a7f3d0' : '#64748b';
   ctx.font = '12px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('unidades de cerca (u)', pCardX + 68, cardY + 52);
 
-  ctx.fillStyle = '#475569';
+  ctx.fillStyle = isChalk ? '#94a3b8' : '#475569';
   ctx.font = '11px "Plus Jakarta Sans", sans-serif';
   ctx.fillText('Comprimento total da borda externa', pCardX + 12, cardY + 72);
 
   // 5. Student & Teacher Identification Footer
   const footerY = cardY + cardHeight + 24;
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = isChalk ? '#244b37' : '#e2e8f0';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(36, footerY);
@@ -211,7 +214,7 @@ export function exportPolygonAsPNG({
   ctx.stroke();
 
   const currentDate = new Date().toLocaleDateString('pt-BR');
-  ctx.fillStyle = '#475569';
+  ctx.fillStyle = isChalk ? '#a7f3d0' : '#475569';
   ctx.font = '12px "Plus Jakarta Sans", sans-serif';
   ctx.fillText(`Aluno(a): ________________________________________`, 36, footerY + 24);
   ctx.fillText(`Turma: 4º Ano _____`, 460, footerY + 24);

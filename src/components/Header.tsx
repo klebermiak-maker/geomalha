@@ -10,6 +10,7 @@ interface HeaderProps {
   isMuted: boolean;
   onToggleMute: () => void;
   onOpenHelp: () => void;
+  onOpenTutorial: () => void;
   completedMissionsCount: number;
 }
 
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   isMuted,
   onToggleMute,
   onOpenHelp,
+  onOpenTutorial,
   completedMissionsCount
 }) => {
   return (
@@ -35,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Zone 2: 4 clean navigation links/tabs */}
-      <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+      <nav data-tutorial="nav-tabs" className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
         <button
           onClick={() => {
             soundManager.playClick();
@@ -89,6 +91,18 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Zone 3: Primary actions */}
       <div className="flex items-center gap-2">
+        <button
+          onClick={() => {
+            soundManager.playClick();
+            onOpenTutorial();
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition-colors whitespace-nowrap shadow-xs"
+          title="Iniciar Tutorial Guiado passo a passo"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+          <span>Tutorial</span>
+        </button>
+
         <button
           onClick={onToggleMute}
           className={`p-2 rounded-lg border transition-colors ${

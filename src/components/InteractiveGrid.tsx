@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Point, EdgeSegment, GridMode, ActiveTool, StampShape } from '../types/geometry';
+import { Point, EdgeSegment, GridMode, ActiveTool, StampShape, GridTheme } from '../types/geometry';
 import { soundManager } from '../utils/audio';
 import { getStampCells } from '../utils/gridCalculations';
 
@@ -7,6 +7,7 @@ interface InteractiveGridProps {
   cols: number;
   rows: number;
   mode: GridMode;
+  theme?: GridTheme;
   activeTool: ActiveTool;
   color: string;
   cells: Point[];
@@ -25,6 +26,7 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
   cols,
   rows,
   mode,
+  theme = 'paper',
   activeTool,
   color,
   cells,
@@ -187,19 +189,29 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
   }, [mode, isPolygonClosed, vertices, onVerticesChange]);
 
   // Color classes map
-  const colorMap: Record<string, { fill: string; border: string; bgSoft: string }> = {
-    blue: { fill: '#38bdf8', border: '#0284c7', bgSoft: 'rgba(56, 189, 248, 0.45)' },
-    emerald: { fill: '#34d399', border: '#059669', bgSoft: 'rgba(52, 211, 153, 0.45)' },
-    amber: { fill: '#fbbf24', border: '#d97706', bgSoft: 'rgba(251, 191, 36, 0.45)' },
-    rose: { fill: '#fb7185', border: '#e11d48', bgSoft: 'rgba(251, 113, 133, 0.45)' },
-    violet: { fill: '#a78bfa', border: '#7c3aed', bgSoft: 'rgba(167, 139, 250, 0.45)' }
-  };
+  const isChalk = theme === 'chalkboard';
+
+  const colorMap: Record<string, { fill: string; border: string; bgSoft: string }> = isChalk
+    ? {
+        blue: { fill: '#38bdf8', border: '#7dd3fc', bgSoft: 'rgba(56, 189, 248, 0.45)' },
+        emerald: { fill: '#34d399', border: '#a7f3d0', bgSoft: 'rgba(52, 211, 153, 0.45)' },
+        amber: { fill: '#fbbf24', border: '#fef08a', bgSoft: 'rgba(251, 191, 36, 0.45)' },
+        rose: { fill: '#fb7185', border: '#fecdd3', bgSoft: 'rgba(251, 113, 133, 0.45)' },
+        violet: { fill: '#c084fc', border: '#e9d5ff', bgSoft: 'rgba(192, 132, 252, 0.45)' }
+      }
+    : {
+        blue: { fill: '#38bdf8', border: '#0284c7', bgSoft: 'rgba(56, 189, 248, 0.45)' },
+        emerald: { fill: '#34d399', border: '#059669', bgSoft: 'rgba(52, 211, 153, 0.45)' },
+        amber: { fill: '#fbbf24', border: '#d97706', bgSoft: 'rgba(251, 191, 36, 0.45)' },
+        rose: { fill: '#fb7185', border: '#e11d48', bgSoft: 'rgba(251, 113, 133, 0.45)' },
+        violet: { fill: '#a78bfa', border: '#7c3aed', bgSoft: 'rgba(167, 139, 250, 0.45)' }
+      };
   const activeColorTheme = colorMap[color] || colorMap.blue;
 
   return (
     <div className="relative select-none flex flex-col items-center">
       {/* Top ruler with column numbers */}
-      <div className="flex ml-7 mb-1 text-[11px] font-mono text-slate-500 font-medium">
+      <div className={`flex ml-7 mb-1 text-[11px] font-mono font-medium ${isChalk ? 'text-emerald-200 font-bold' : 'text-slate-500'}`}>
         {Array.from({ length: cols }).map((_, i) => (
           <div key={i} style={{ width: cellSize }} className="text-center">
             {i + 1}
@@ -209,7 +221,7 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
 
       <div className="flex">
         {/* Left ruler with row numbers */}
-        <div className="flex flex-col mr-1 text-[11px] font-mono text-slate-500 font-medium justify-around">
+        <div className={`flex flex-col mr-1 text-[11px] font-mono font-medium justify-around ${isChalk ? 'text-emerald-200 font-bold' : 'text-slate-500'}`}>
           {Array.from({ length: rows }).map((_, i) => (
             <div key={i} style={{ height: cellSize }} className="flex items-center justify-end pr-1">
               {i + 1}
@@ -233,7 +245,11 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
             height,
             touchAction: 'none'
           }}
-          className="relative bg-white rounded-md shadow-sm border-2 border-slate-300 overflow-hidden cursor-crosshair"
+          className={`relative rounded-xl overflow-hidden cursor-crosshair transition-colors duration-200 ${
+            isChalk
+              ? 'bg-[#112a1d] shadow-xl border-4 border-[#244b37]'
+              : 'bg-white rounded-md shadow-sm border-2 border-slate-300'
+          }`}
         >
           {/* SVG Layer for Grid Lines, Polygons & Perimeter Measurements */}
           <svg
@@ -252,13 +268,14 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
                 <path
                   d={`M ${cellSize} 0 L 0 0 0 ${cellSize}`}
                   fill="none"
-                  stroke="#e2e8f0"
+                  stroke={isChalk ? '#25523a' : '#e2e8f0'}
                   strokeWidth="1"
                 />
               </pattern>
             </defs>
 
             {/* Background Grid Lines */}
+            <rect width={width} height={height} fill={isChalk ? '#112a1d' : 'white'} />
             <rect width={width} height={height} fill="url(#grid-pattern)" />
 
             {/* Intersections/Dots for vertices */}
@@ -269,7 +286,8 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
                   cx={c * cellSize}
                   cy={r * cellSize}
                   r={mode === 'vertices' ? 2.5 : 1.2}
-                  fill={mode === 'vertices' ? '#94a3b8' : '#cbd5e1'}
+                  fill={isChalk ? (mode === 'vertices' ? '#6ee7b7' : '#34d399') : (mode === 'vertices' ? '#94a3b8' : '#cbd5e1')}
+                  opacity={isChalk ? 0.45 : 1}
                 />
               ))
             )}
@@ -288,9 +306,9 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
                       height={cellSize - 2}
                       rx={3}
                       fill={activeColorTheme.fill}
-                      fillOpacity={0.88}
+                      fillOpacity={isChalk ? 0.92 : 0.88}
                       stroke={activeColorTheme.border}
-                      strokeWidth={1.5}
+                      strokeWidth={isChalk ? 2 : 1.5}
                     />
                     {/* Area Counter: Number printed inside each square */}
                     {showAreaNumbers && (
@@ -329,7 +347,7 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
                         y1={y1}
                         x2={x2}
                         y2={y2}
-                        stroke="#f97316"
+                        stroke={isChalk ? '#facc15' : '#f97316'}
                         strokeWidth={showPerimeterTicks ? 4 : 2.5}
                         strokeLinecap="round"
                       />
@@ -341,7 +359,7 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
                             cx={midX}
                             cy={midY}
                             r={6.5}
-                            fill="#ea580c"
+                            fill={isChalk ? '#ca8a04' : '#ea580c'}
                             stroke="#ffffff"
                             strokeWidth={1.5}
                           />
@@ -456,7 +474,7 @@ export const InteractiveGrid: React.FC<InteractiveGridProps> = ({
       </div>
 
       {/* Mode hint under grid */}
-      <div className="mt-2 text-xs text-slate-500 flex items-center gap-3">
+      <div className={`mt-2 text-xs flex items-center gap-3 transition-colors ${isChalk ? 'text-emerald-700 font-medium' : 'text-slate-500'}`}>
         {mode === 'cells' ? (
           <span>
             {activeTool === 'stamp'

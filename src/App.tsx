@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Point, GridMode, ActiveTool, StampShape, SavedShape } from './types/geometry';
+import { Point, GridMode, ActiveTool, StampShape, SavedShape, GridTheme } from './types/geometry';
 import { Header, AppTab } from './components/Header';
 import { InteractiveGrid } from './components/InteractiveGrid';
 import { DrawingToolbar } from './components/DrawingToolbar';
@@ -9,10 +9,11 @@ import { DetectiveQuiz } from './components/DetectiveQuiz';
 import { ShapeComparator } from './components/ShapeComparator';
 import { DidacticHelperModal } from './components/DidacticHelperModal';
 import { SavedShapesModal } from './components/SavedShapesModal';
+import { GuidedTutorial } from './components/GuidedTutorial';
 import { calculateCellMeasurements, calculatePolygonMeasurements } from './utils/gridCalculations';
 import { soundManager } from './utils/audio';
 import { MISSIONS_DATA } from './data/missionsData';
-import { Bookmark, Sparkles, HelpCircle, Download } from 'lucide-react';
+import { Bookmark, Sparkles, HelpCircle, Download, Presentation } from 'lucide-react';
 import { exportPolygonAsPNG } from './utils/exportImage';
 
 const COLS = 14;
@@ -46,11 +47,28 @@ export default function App() {
   // Overlay Helpers
   const [showAreaNumbers, setShowAreaNumbers] = useState(true);
   const [showPerimeterTicks, setShowPerimeterTicks] = useState(false);
+  const [gridTheme, setGridTheme] = useState<GridTheme>('paper');
 
   // Sound & Modals
   const [isMuted, setIsMuted] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+  // Auto-launch tutorial on first visit for new 4th-grade students
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem('geomalha_tutorial_completed');
+      if (!seen) {
+        const timer = setTimeout(() => {
+          setIsTutorialOpen(true);
+        }, 700);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Missions state (persisted in localStorage)
   const [currentMissionIndex, setCurrentMissionIndex] = useState(0);
@@ -214,12 +232,13 @@ export default function App() {
     const success = exportPolygonAsPNG({
       shapeName: 'Poligono_4o_Ano',
       cells,
-      colorHex: fillHex
+      colorHex: fillHex,
+      theme: gridTheme
     });
     if (success) {
       soundManager.playSuccess();
     }
-  }, [cells, color]);
+  }, [cells, color, gridTheme]);
 
   // When switching missions, check if target mission requirements should update
   const currentMission = MISSIONS_DATA[currentMissionIndex];
@@ -233,6 +252,7 @@ export default function App() {
         isMuted={isMuted}
         onToggleMute={handleToggleMute}
         onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenTutorial={() => setIsTutorialOpen(true)}
         completedMissionsCount={completedMissions.length}
       />
 
@@ -303,20 +323,53 @@ export default function App() {
             />
 
             {/* The Grid Canvas Container */}
-            <div className="bg-white/80 p-3 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col items-center">
-              <div className="w-full flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <div className={`p-3 sm:p-5 rounded-2xl border transition-all duration-300 flex flex-col items-center ${
+              gridTheme === 'chalkboard'
+                ? 'bg-[#0b1f14] border-[#1d4530] text-emerald-100 shadow-md'
+                : 'bg-white/80 border-slate-200/90 shadow-xs'
+            }`}>
+              <div className="w-full flex items-center justify-between mb-2 flex-wrap gap-2">
+                <span className={`text-xs font-bold flex items-center gap-1.5 ${
+                  gridTheme === 'chalkboard' ? 'text-emerald-200' : 'text-slate-700'
+                }`}>
                   <span>📐 Malha Quadriculada (14 × 12)</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    · Cada quadradinho = 1 u² de área e lado = 1 u
+                  <span className={`text-[10px] font-normal ${
+                    gridTheme === 'chalkboard' ? 'text-emerald-400/80' : 'text-slate-400'
+                  }`}>
+                    · Cada quadradinho = 1 u² e lado = 1 u
                   </span>
                 </span>
 
-                <div className="flex items-center gap-1.5">
+                <div data-tutorial="header-controls" className="flex items-center gap-1.5 flex-wrap">
+                  {/* Classroom Presentation / Chalkboard Mode Toggle */}
+                  <button
+                    onClick={() => {
+                      soundManager.playClick();
+                      setGridTheme(t => t === 'paper' ? 'chalkboard' : 'paper');
+                    }}
+                    className={`flex items-center gap-1.5 text-[11px] font-semibold border px-2.5 py-1 rounded-lg transition-all ${
+                      gridTheme === 'chalkboard'
+                        ? 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-500 shadow-xs ring-1 ring-emerald-400'
+                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                    }`}
+                    title={
+                      gridTheme === 'chalkboard'
+                        ? 'Alternar para tema Papel Caderno'
+                        : 'Alternar para Modo Lousa Verde (ideal para projetores e sala de aula)'
+                    }
+                  >
+                    <Presentation className="w-3.5 h-3.5" />
+                    <span>{gridTheme === 'chalkboard' ? 'Modo Papel' : 'Modo Lousa'}</span>
+                  </button>
+
                   <button
                     onClick={handleQuickExport}
                     disabled={cells.length === 0}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 disabled:opacity-40 border border-sky-200 px-2.5 py-1 rounded-lg transition-colors"
+                    className={`flex items-center gap-1 text-[11px] font-semibold border px-2.5 py-1 rounded-lg transition-colors disabled:opacity-40 ${
+                      gridTheme === 'chalkboard'
+                        ? 'bg-sky-950/70 hover:bg-sky-900 text-sky-200 border-sky-800'
+                        : 'bg-sky-50 hover:bg-sky-100 text-sky-700 border-sky-200'
+                    }`}
                     title="Exportar polígono atual como imagem PNG para o professor"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -325,32 +378,39 @@ export default function App() {
 
                   <button
                     onClick={() => setIsGalleryOpen(true)}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition-colors"
+                    className={`flex items-center gap-1 text-[11px] font-semibold border px-2.5 py-1 rounded-lg transition-colors ${
+                      gridTheme === 'chalkboard'
+                        ? 'bg-amber-950/70 hover:bg-amber-900 text-amber-200 border-amber-800'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                    }`}
                   >
                     <Bookmark className="w-3.5 h-3.5" />
-                    <span>Galeria de Desenhos</span>
+                    <span>Galeria</span>
                   </button>
                 </div>
               </div>
 
               {/* Interactive Grid Element */}
-              <InteractiveGrid
-                cols={COLS}
-                rows={ROWS}
-                mode={mode}
-                activeTool={activeTool}
-                color={color}
-                cells={cells}
-                onCellsChange={handleCellsChange}
-                vertices={vertices}
-                onVerticesChange={setVertices}
-                showAreaNumbers={showAreaNumbers}
-                showPerimeterTicks={showPerimeterTicks}
-                edgeSegments={cellMeasurements.edgeSegments}
-                isPolygonClosed={isPolygonClosed}
-                onClosePolygon={handleClosePolygon}
-                selectedStamp={selectedStamp}
-              />
+              <div data-tutorial="grid-canvas" className="w-full flex justify-center">
+                <InteractiveGrid
+                  cols={COLS}
+                  rows={ROWS}
+                  mode={mode}
+                  theme={gridTheme}
+                  activeTool={activeTool}
+                  color={color}
+                  cells={cells}
+                  onCellsChange={handleCellsChange}
+                  vertices={vertices}
+                  onVerticesChange={setVertices}
+                  showAreaNumbers={showAreaNumbers}
+                  showPerimeterTicks={showPerimeterTicks}
+                  edgeSegments={cellMeasurements.edgeSegments}
+                  isPolygonClosed={isPolygonClosed}
+                  onClosePolygon={handleClosePolygon}
+                  selectedStamp={selectedStamp}
+                />
+              </div>
             </div>
           </div>
 
@@ -452,6 +512,20 @@ export default function App() {
         currentPerimeter={cellMeasurements.perimeter}
         currentCells={cells}
         currentColor={color}
+        theme={gridTheme}
+      />
+
+      <GuidedTutorial
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
+        onComplete={() => {
+          try {
+            localStorage.setItem('geomalha_tutorial_completed', 'true');
+          } catch {
+            // ignore
+          }
+          setIsTutorialOpen(false);
+        }}
       />
     </div>
   );
