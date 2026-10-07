@@ -1,0 +1,6 @@
+{
+  "name": "GeoMalha 4º Ano: Área e Perímetro",
+  "description": "Jogo interativo e educativo para alunos do 4º ano aprenderem área e perímetro em malha quadriculada, com desenho de polígonos, desafios e contagem visual.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
